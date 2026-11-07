@@ -229,6 +229,38 @@ button.btn-secondary { background: var(--secondary); }
   margin-top: 0.2rem;
 }
 
+/* Nested sections / subsections */
+.subsection-card {
+  border-left: 4px solid var(--logic-border);
+  background: #fcfcff;
+}
+
+.subsections-wrap {
+  margin-top: 0.5rem;
+  padding-left: 0.5rem;
+  border-left: 2px dashed var(--border);
+}
+
+.doc-subsections {
+  padding: 1rem 1rem 0.25rem 1.5rem;
+  background: #fafbfc;
+  border-top: 1px solid var(--border);
+}
+
+.doc-subsection {
+  border-left: 4px solid var(--logic-border);
+  background: var(--surface);
+}
+
+.doc-subsection .doc-section-header h4 {
+  margin: 0;
+  color: var(--logic-border);
+}
+
+.doc-section {
+  break-inside: avoid-page;
+}
+
 @media print {
   .header, .pane-editor {
     display: none !important;

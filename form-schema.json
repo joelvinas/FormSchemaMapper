@@ -28,6 +28,12 @@
         "fields": {
           "type": "array",
           "items": { "$ref": "#/definitions/FormField" }
+        },
+        "subsections": {
+          "type": "array",
+          "description": "Nested sections (recursive). Each subsection has its own fields, display/skip logic, and may contain further subsections. Logic conditions may reference any field that appears earlier in document order, including the parent's fields and earlier siblings' fields.",
+          "items": { "$ref": "#/definitions/FormSection" },
+          "default": []
         }
       }
     },
