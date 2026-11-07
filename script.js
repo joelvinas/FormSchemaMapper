@@ -122,7 +122,7 @@ function renderEditor() {
     secEl.innerHTML = `
       <div class="card-title">
         <span>Section ${sIdx + 1}</span>
-        <button class="btn-danger" onclick="removeSection(${sIdx})">Remove Section</button>
+        ${formData.sections.length > 1 ? `<button class="btn-danger" onclick="removeSection(${sIdx})">Remove Section</button>` : ''}
       </div>
       <div class="form-group">
         <label>Section Title</label>
@@ -133,7 +133,7 @@ function renderEditor() {
         <input type="text" value="${sec.description}" oninput="formData.sections[${sIdx}].description = this.value; renderDocument();">
       </div>
 
-      <!-- Logic Controls at Section Header -->
+      <!-- Section Logic Controls -->
       <div class="row">
         <div>
           <button class="btn-secondary" style="width:100%;" onclick="toggleLogic(${sIdx}, 'displayLogic')">
@@ -152,7 +152,16 @@ function renderEditor() {
 
       <h4 style="margin-top:1rem;">Section Fields</h4>
       <div id="fieldsContainer-${sIdx}"></div>
-      <button onclick="addField(${sIdx})" class="btn-secondary" style="width:100%; margin-top: 0.5rem;">+ Add Field to Section</button>
+      
+      <!-- Action controls for adding fields within section or adding a new section below -->
+      <div class="row" style="margin-top: 0.75rem;">
+        <div>
+          <button onclick="addField(${sIdx})" class="btn-secondary" style="width:100%;">+ Add Field to Section ${sIdx + 1}</button>
+        </div>
+        <div>
+          <button onclick="addSectionAfter(${sIdx})" class="btn-primary-block" style="width:100%;">+ Add Section Below</button>
+        </div>
+      </div>
     `;
     container.appendChild(secEl);
     renderFields(sIdx);
@@ -282,15 +291,16 @@ function renderFields(sIdx) {
   });
 }
 
-function addSection() {
-  formData.sections.push({
+function addSectionAfter(sIdx) {
+  const newSec = {
     sectionId: `SEC-${formData.sections.length + 1}`,
-    title: "New Section",
+    title: `Section ${sIdx + 2}`,
     description: "",
     displayLogic: { enabled: false, junction: "AND", conditions: [] },
     skipLogic: { enabled: false, junction: "AND", conditions: [] },
     fields: []
-  });
+  };
+  formData.sections.splice(sIdx + 1, 0, newSec);
   renderEditor();
   renderDocument();
 }
