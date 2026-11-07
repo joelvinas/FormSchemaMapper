@@ -8,6 +8,8 @@
   --accent: #00875a;
   --danger: #de350b;
   --secondary: #42526e;
+  --logic-bg: #eae6ff;
+  --logic-border: #403294;
 }
 
 body {
@@ -124,7 +126,34 @@ button.btn-success { background: var(--accent); }
 button.btn-danger { background: var(--danger); }
 button.btn-secondary { background: var(--secondary); }
 
-/* Document Print/MHTML Specification Render Styling */
+/* Logic Builder Styles */
+.logic-block {
+  background: var(--logic-bg);
+  border: 1px solid var(--logic-border);
+  border-radius: 4px;
+  padding: 0.75rem;
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.logic-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: var(--logic-border);
+  margin-bottom: 0.5rem;
+}
+
+.logic-rule-row {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  margin-bottom: 0.4rem;
+}
+
+/* Document & Print Output Styling */
 .doc-header {
   border-bottom: 2px solid var(--primary);
   padding-bottom: 1rem;
@@ -147,6 +176,20 @@ button.btn-secondary { background: var(--secondary); }
 .doc-section-header h3 {
   margin: 0;
   color: var(--primary);
+}
+
+.logic-banner {
+  background: #f4f0ff;
+  border-left: 4px solid var(--logic-border);
+  padding: 0.6rem 0.8rem;
+  margin-top: 0.5rem;
+  border-radius: 0 4px 4px 0;
+  font-size: 0.82rem;
+}
+
+.logic-banner ul {
+  margin: 0.25rem 0 0 1.2rem;
+  padding: 0;
 }
 
 .doc-field-table {

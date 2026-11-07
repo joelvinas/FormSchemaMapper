@@ -7,18 +7,48 @@ let formData = {
   sections: [
     {
       sectionId: "SEC-1",
-      title: "General Information",
-      description: "Basic metadata for the project intake process.",
+      title: "Intake & Project Type",
+      description: "Basic categorization fields.",
+      displayLogic: { enabled: false, junction: "AND", conditions: [] },
+      skipLogic: { enabled: false, junction: "AND", conditions: [] },
       fields: [
         {
           fieldId: "FLD-101",
-          name: "ProjectName",
-          title: "Project Name",
-          description: "Enter a <b>unique</b> descriptive title for the project.",
+          name: "ProjectType",
+          title: "Project Type",
+          description: "Select the classification of the request.",
           required: true,
+          dataType: { sourceType: "singleSelect", targetType: "Dropdown (Single Choice)" },
+          sourceMapping: { databaseId: "appIntake", databaseName: "Base", tableId: "tblReq", tableName: "Requests", fieldId: "fld253", fieldName: "Project Type" },
+          destinationMapping: { databaseId: "wfWs", databaseName: "Workspace", tableId: "wfRec", tableName: "Campaign Item", fieldId: "wfPType", fieldName: "Project Type" }
+        }
+      ]
+    },
+    {
+      sectionId: "SEC-2",
+      title: "Campaign Details",
+      description: "Targeted information for holiday and team efforts.",
+      displayLogic: {
+        enabled: true,
+        junction: "AND",
+        conditions: [
+          { controllingFieldId: "FLD-101", controllingFieldName: "ProjectType", operator: "equals", value: "Holiday Sales Prep" },
+          { controllingFieldId: "FLD-101", controllingFieldName: "ProjectType", operator: "contains", value: "Team" },
+          { controllingFieldId: "FLD-101", controllingFieldName: "ProjectType", operator: "doesNotContain", value: "Top Secret" },
+          { controllingFieldId: "FLD-101", controllingFieldName: "ProjectType", operator: "notEquals", value: "Executive Team" }
+        ]
+      },
+      skipLogic: { enabled: false, junction: "AND", conditions: [] },
+      fields: [
+        {
+          fieldId: "FLD-201",
+          name: "BudgetCode",
+          title: "Budget Code",
+          description: "Internal cost center.",
+          required: false,
           dataType: { sourceType: "singleLineText", targetType: "Single Line Text" },
-          sourceMapping: { databaseId: "app123", databaseName: "Marketing Base", tableId: "tbl456", tableName: "Requests", fieldId: "fld789", fieldName: "Project Name" },
-          destinationMapping: { databaseId: "wfWorkspace", databaseName: "Marketing Workspace", tableId: "wfRec", tableName: "Campaign Work Item", fieldId: "wfName", fieldName: "Name" }
+          sourceMapping: { databaseId: "appIntake", databaseName: "Base", tableId: "tblReq", tableName: "Requests", fieldId: "fld888", fieldName: "Budget Code" },
+          destinationMapping: { databaseId: "wfWs", databaseName: "Workspace", tableId: "wfRec", tableName: "Campaign Item", fieldId: "wfBCode", fieldName: "Budget Code" }
         }
       ]
     }
@@ -43,6 +73,15 @@ const targetTypeOptions = [
   "URL / Link", "Email", "Phone", "System Metadata"
 ];
 
+const operatorOptions = [
+  { val: "equals", label: "exactly equal to" },
+  { val: "notEquals", label: "does NOT equal" },
+  { val: "contains", label: "contains" },
+  { val: "doesNotContain", label: "does NOT contain" },
+  { val: "isEmpty", label: "is empty" },
+  { val: "isNotEmpty", label: "is NOT empty" }
+];
+
 function init() {
   document.getElementById('sourceSystem').value = formData.sourceSystem;
   document.getElementById('targetSystem').value = formData.targetSystem;
@@ -58,11 +97,26 @@ function updateData() {
   renderDocument();
 }
 
+function getUpstreamFields(currentSectionIdx) {
+  const upstream = [];
+  for (let i = 0; i < currentSectionIdx; i++) {
+    formData.sections[i].fields.forEach(f => {
+      upstream.push({
+        fieldId: f.fieldId,
+        fieldName: f.name,
+        title: f.title
+      });
+    });
+  }
+  return upstream;
+}
+
 function renderEditor() {
   const container = document.getElementById('sectionsContainer');
   container.innerHTML = '';
 
   formData.sections.forEach((sec, sIdx) => {
+    const upstreamFields = getUpstreamFields(sIdx);
     const secEl = document.createElement('div');
     secEl.className = 'card';
     secEl.innerHTML = `
@@ -78,13 +132,101 @@ function renderEditor() {
         <label>Section Description (HTML Supported)</label>
         <input type="text" value="${sec.description}" oninput="formData.sections[${sIdx}].description = this.value; renderDocument();">
       </div>
-      <h4>Fields</h4>
+
+      <!-- Logic Controls at Section Header -->
+      <div class="row">
+        <div>
+          <button class="btn-secondary" style="width:100%;" onclick="toggleLogic(${sIdx}, 'displayLogic')">
+            ${sec.displayLogic.enabled ? 'Disable Display Logic' : '+ Add Display Logic'}
+          </button>
+        </div>
+        <div>
+          <button class="btn-secondary" style="width:100%;" onclick="toggleLogic(${sIdx}, 'skipLogic')">
+            ${sec.skipLogic.enabled ? 'Disable Skip Logic' : '+ Add Skip Logic'}
+          </button>
+        </div>
+      </div>
+
+      ${sec.displayLogic.enabled ? renderLogicEditor(sIdx, 'displayLogic', 'Display Logic', upstreamFields) : ''}
+      ${sec.skipLogic.enabled ? renderLogicEditor(sIdx, 'skipLogic', 'Skip Logic', upstreamFields) : ''}
+
+      <h4 style="margin-top:1rem;">Section Fields</h4>
       <div id="fieldsContainer-${sIdx}"></div>
       <button onclick="addField(${sIdx})" class="btn-secondary" style="width:100%; margin-top: 0.5rem;">+ Add Field to Section</button>
     `;
     container.appendChild(secEl);
     renderFields(sIdx);
   });
+}
+
+function renderLogicEditor(sIdx, logicType, label, upstreamFields) {
+  const logic = formData.sections[sIdx][logicType];
+  return `
+    <div class="logic-block">
+      <div class="logic-header">
+        <span>${label} Rules (Evaluated if prior fields match)</span>
+        <select style="width: auto; padding: 0.2rem;" onchange="formData.sections[${sIdx}]['${logicType}'].junction=this.value; renderDocument();">
+          <option value="AND" ${logic.junction==='AND'?'selected':''}>Match ALL (AND)</option>
+          <option value="OR" ${logic.junction==='OR'?'selected':''}>Match ANY (OR)</option>
+        </select>
+      </div>
+      ${upstreamFields.length === 0 ? '<div style="font-size:0.8rem; color:red;">No upstream fields available from previous sections.</div>' : ''}
+      ${logic.conditions.map((cond, cIdx) => `
+        <div class="logic-rule-row">
+          <select style="flex:2;" onchange="updateConditionField(${sIdx}, '${logicType}', ${cIdx}, this.value)">
+            <option value="">-- Select Controlling Upstream Field --</option>
+            ${upstreamFields.map(uf => `
+              <option value="${uf.fieldId}" ${cond.controllingFieldId===uf.fieldId?'selected':''}>
+                ${uf.title} (${uf.fieldName} - ${uf.fieldId})
+              </option>
+            `).join('')}
+          </select>
+          <select style="flex:1.5;" onchange="formData.sections[${sIdx}]['${logicType}'].conditions[${cIdx}].operator=this.value; renderDocument();">
+            ${operatorOptions.map(op => `<option value="${op.val}" ${cond.operator===op.val?'selected':''}>${op.label}</option>`).join('')}
+          </select>
+          <input type="text" style="flex:1.5;" placeholder="Value" value="${cond.value||''}" oninput="formData.sections[${sIdx}]['${logicType}'].conditions[${cIdx}].value=this.value; renderDocument();">
+          <button class="btn-danger" onclick="removeCondition(${sIdx}, '${logicType}', ${cIdx})">&times;</button>
+        </div>
+      `).join('')}
+      <button class="btn-secondary" style="font-size:0.75rem; padding: 0.2rem 0.5rem;" onclick="addCondition(${sIdx}, '${logicType}')">+ Add Condition</button>
+    </div>
+  `;
+}
+
+function toggleLogic(sIdx, logicType) {
+  formData.sections[sIdx][logicType].enabled = !formData.sections[sIdx][logicType].enabled;
+  renderEditor();
+  renderDocument();
+}
+
+function addCondition(sIdx, logicType) {
+  formData.sections[sIdx][logicType].conditions.push({
+    controllingFieldId: "",
+    controllingFieldName: "",
+    operator: "equals",
+    value: ""
+  });
+  renderEditor();
+  renderDocument();
+}
+
+function removeCondition(sIdx, logicType, cIdx) {
+  formData.sections[sIdx][logicType].conditions.splice(cIdx, 1);
+  renderEditor();
+  renderDocument();
+}
+
+function updateConditionField(sIdx, logicType, cIdx, fieldId) {
+  const upstreamFields = getUpstreamFields(sIdx);
+  const match = upstreamFields.find(f => f.fieldId === fieldId);
+  if (match) {
+    formData.sections[sIdx][logicType].conditions[cIdx].controllingFieldId = match.fieldId;
+    formData.sections[sIdx][logicType].conditions[cIdx].controllingFieldName = match.fieldName;
+  } else {
+    formData.sections[sIdx][logicType].conditions[cIdx].controllingFieldId = "";
+    formData.sections[sIdx][logicType].conditions[cIdx].controllingFieldName = "";
+  }
+  renderDocument();
 }
 
 function renderFields(sIdx) {
@@ -101,9 +243,9 @@ function renderFields(sIdx) {
         <button class="btn-danger" onclick="removeField(${sIdx}, ${fIdx})">&times;</button>
       </div>
       <div class="row form-group">
-        <div><label>Field ID</label><input type="text" value="${f.fieldId}" oninput="formData.sections[${sIdx}].fields[${fIdx}].fieldId=this.value; renderDocument();"></div>
-        <div><label>System Name</label><input type="text" value="${f.name}" oninput="formData.sections[${sIdx}].fields[${fIdx}].name=this.value; renderDocument();"></div>
-        <div><label>Display Title</label><input type="text" value="${f.title}" oninput="formData.sections[${sIdx}].fields[${fIdx}].title=this.value; renderDocument();"></div>
+        <div><label>Field ID</label><input type="text" value="${f.fieldId}" oninput="formData.sections[${sIdx}].fields[${fIdx}].fieldId=this.value; renderEditor(); renderDocument();"></div>
+        <div><label>System Name</label><input type="text" value="${f.name}" oninput="formData.sections[${sIdx}].fields[${fIdx}].name=this.value; renderEditor(); renderDocument();"></div>
+        <div><label>Display Title</label><input type="text" value="${f.title}" oninput="formData.sections[${sIdx}].fields[${fIdx}].title=this.value; renderEditor(); renderDocument();"></div>
       </div>
       <div class="form-group">
         <label>Description (Supports HTML/Links/Bold)</label>
@@ -125,13 +267,13 @@ function renderFields(sIdx) {
       </div>
       <label><b>Source Mapping (${formData.sourceSystem})</b></label>
       <div class="row form-group">
-        <div><input type="text" placeholder="Database / Base ID" value="${f.sourceMapping.databaseId}" oninput="formData.sections[${sIdx}].fields[${fIdx}].sourceMapping.databaseId=this.value; renderDocument();"></div>
+        <div><input type="text" placeholder="Database ID" value="${f.sourceMapping.databaseId}" oninput="formData.sections[${sIdx}].fields[${fIdx}].sourceMapping.databaseId=this.value; renderDocument();"></div>
         <div><input type="text" placeholder="Table Name" value="${f.sourceMapping.tableName}" oninput="formData.sections[${sIdx}].fields[${fIdx}].sourceMapping.tableName=this.value; renderDocument();"></div>
         <div><input type="text" placeholder="Field Name" value="${f.sourceMapping.fieldName}" oninput="formData.sections[${sIdx}].fields[${fIdx}].sourceMapping.fieldName=this.value; renderDocument();"></div>
       </div>
       <label><b>Destination Mapping (${formData.targetSystem})</b></label>
       <div class="row form-group">
-        <div><input type="text" placeholder="Database / Workspace ID" value="${f.destinationMapping.databaseId}" oninput="formData.sections[${sIdx}].fields[${fIdx}].destinationMapping.databaseId=this.value; renderDocument();"></div>
+        <div><input type="text" placeholder="Database ID" value="${f.destinationMapping.databaseId}" oninput="formData.sections[${sIdx}].fields[${fIdx}].destinationMapping.databaseId=this.value; renderDocument();"></div>
         <div><input type="text" placeholder="Table Name" value="${f.destinationMapping.tableName}" oninput="formData.sections[${sIdx}].fields[${fIdx}].destinationMapping.tableName=this.value; renderDocument();"></div>
         <div><input type="text" placeholder="Field Name" value="${f.destinationMapping.fieldName}" oninput="formData.sections[${sIdx}].fields[${fIdx}].destinationMapping.fieldName=this.value; renderDocument();"></div>
       </div>
@@ -145,6 +287,8 @@ function addSection() {
     sectionId: `SEC-${formData.sections.length + 1}`,
     title: "New Section",
     description: "",
+    displayLogic: { enabled: false, junction: "AND", conditions: [] },
+    skipLogic: { enabled: false, junction: "AND", conditions: [] },
     fields: []
   });
   renderEditor();
@@ -178,6 +322,22 @@ function removeField(sIdx, fIdx) {
   renderDocument();
 }
 
+function formatLogicSummary(logicObj) {
+  if (!logicObj || !logicObj.enabled || logicObj.conditions.length === 0) return '';
+  return `
+    <div class="logic-banner">
+      <b>Logic Evaluated (${logicObj.junction} Match):</b>
+      <ul>
+        ${logicObj.conditions.map(c => {
+          const opObj = operatorOptions.find(o => o.val === c.operator);
+          const opLabel = opObj ? opObj.label : c.operator;
+          return `<li>Controlling Field: <b>${c.controllingFieldName || 'Unset'}</b> [<code>${c.controllingFieldId || 'Unset'}</code>] &mdash; ${opLabel} <b>"${c.value || ''}"</b></li>`;
+        }).join('')}
+      </ul>
+    </div>
+  `;
+}
+
 function renderDocument() {
   const doc = document.getElementById('documentRender');
   doc.innerHTML = `
@@ -194,6 +354,8 @@ function renderDocument() {
         <div class="doc-section-header">
           <h3>Section ${sIdx + 1}: ${sec.title}</h3>
           ${sec.description ? `<p style="margin: 0.25rem 0 0 0; font-size: 0.85rem;">${sec.description}</p>` : ''}
+          ${formatLogicSummary(sec.displayLogic)}
+          ${formatLogicSummary(sec.skipLogic)}
         </div>
         <table class="doc-field-table">
           <thead>
@@ -205,6 +367,7 @@ function renderDocument() {
             </tr>
           </thead>
           <tbody>
+            ${sec.fields.length === 0 ? '<tr><td colspan="4" style="text-align:center; color:var(--text-subtle);">No fields in this section.</td></tr>' : ''}
             ${sec.fields.map(f => `
               <tr>
                 <td>
