@@ -1,0 +1,200 @@
+:root {
+  --primary: #0052cc;
+  --bg: #f4f5f7;
+  --surface: #ffffff;
+  --border: #dfe1e6;
+  --text: #172b4d;
+  --text-subtle: #5e6c84;
+  --accent: #00875a;
+  --danger: #de350b;
+  --secondary: #42526e;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.header {
+  background: var(--primary);
+  color: white;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.container {
+  display: flex;
+  height: calc(100vh - 60px);
+}
+
+.pane {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  box-sizing: border-box;
+}
+
+.pane-editor {
+  border-right: 1px solid var(--border);
+  background: #fafbfc;
+}
+
+.pane-preview {
+  background: var(--surface);
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.card-title {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.form-group {
+  margin-bottom: 0.75rem;
+}
+
+label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  color: var(--text-subtle);
+}
+
+input[type="text"], textarea, select {
+  width: 100%;
+  padding: 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  box-sizing: border-box;
+  font-size: 0.85rem;
+}
+
+.row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.row > div {
+  flex: 1;
+}
+
+button {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 3px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+button.btn-primary-block {
+  background: var(--primary);
+  width: 100%;
+}
+
+button.btn-success { background: var(--accent); }
+button.btn-danger { background: var(--danger); }
+button.btn-secondary { background: var(--secondary); }
+
+/* Document Print/MHTML Specification Render Styling */
+.doc-header {
+  border-bottom: 2px solid var(--primary);
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.doc-section {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+.doc-section-header {
+  background: #f4f5f7;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.doc-section-header h3 {
+  margin: 0;
+  color: var(--primary);
+}
+
+.doc-field-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.doc-field-table th, .doc-field-table td {
+  border: 1px solid var(--border);
+  padding: 0.6rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.doc-field-table th {
+  background: #fafbfc;
+  color: var(--text-subtle);
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  background: #ebecf0;
+  color: var(--text);
+}
+
+.endpoint-box {
+  font-family: monospace;
+  font-size: 0.75rem;
+  background: #f4f5f7;
+  padding: 0.3rem;
+  border-radius: 3px;
+  margin-top: 0.2rem;
+}
+
+@media print {
+  .header, .pane-editor {
+    display: none !important;
+  }
+  .container {
+    height: auto;
+  }
+  .pane-preview {
+    width: 100%;
+    padding: 0;
+  }
+}

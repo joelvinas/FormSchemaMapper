@@ -1,0 +1,132 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CrossPlatformFormMigrationSchema",
+  "description": "Schema for capturing custom form structures, display logic, and data mappings between configurable source and target systems.",
+  "type": "object",
+  "required": ["formId", "formTitle", "sourceSystem", "targetSystem", "sections"],
+  "properties": {
+    "formId": {
+      "type": "string",
+      "description": "Unique identifier for the form configuration."
+    },
+    "formTitle": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string",
+      "description": "Supports HTML/RichText (bold, newlines, hyperlinks)."
+    },
+    "sourceSystem": {
+      "type": "string"
+    },
+    "targetSystem": {
+      "type": "string"
+    },
+    "sections": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/FormSection" }
+    }
+  },
+  "definitions": {
+    "FormSection": {
+      "type": "object",
+      "required": ["sectionId", "title", "fields"],
+      "properties": {
+        "sectionId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": {
+          "type": "string",
+          "description": "HTML or formatted text containing hyperlinks, <b>, <br>."
+        },
+        "displayLogic": { "$ref": "#/definitions/DisplayLogicRule" },
+        "fields": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/FormField" }
+        }
+      }
+    },
+    "FormField": {
+      "type": "object",
+      "required": ["fieldId", "name", "title", "dataType", "sourceMapping", "destinationMapping"],
+      "properties": {
+        "fieldId": { "type": "string" },
+        "name": { "type": "string" },
+        "title": { "type": "string" },
+        "description": {
+          "type": "string",
+          "description": "Rich text description with HTML tags allowed for hyperlinks and formatting."
+        },
+        "required": {
+          "type": "boolean",
+          "default": false
+        },
+        "dataType": {
+          "type": "object",
+          "required": ["sourceType", "targetType"],
+          "properties": {
+            "sourceType": {
+              "type": "string",
+              "enum": [
+                "singleLineText", "multilineText", "richText", "number", "percent",
+                "currency", "singleSelect", "multipleSelects", "singleCollaborator",
+                "multipleCollaborators", "date", "dateTime", "checkbox", "rating",
+                "formula", "rollup", "count", "multipleRecordLinks", "lookup",
+                "multipleAttachments", "url", "email", "phoneNumber", "autoNumber",
+                "createdTime", "lastModifiedTime", "createdBy", "lastModifiedBy"
+              ]
+            },
+            "targetType": {
+              "type": "string",
+              "enum": [
+                "Single Line Text", "Paragraph Text", "Rich Text", "Integer",
+                "Decimal", "Currency", "Percent", "Dropdown (Single Choice)",
+                "Dropdown (Multi Choice)", "User / Personnel", "Date", "Date-Time",
+                "Boolean / Checkbox", "Formula", "Rollup / Aggregation",
+                "Linked Record / Relationship", "Lookup Value", "Attachment / File",
+                "URL / Link", "Email", "Phone", "System Metadata"
+              ]
+            }
+          }
+        },
+        "displayLogic": { "$ref": "#/definitions/DisplayLogicRule" },
+        "sourceMapping": { "$ref": "#/definitions/DataEndpoint" },
+        "destinationMapping": { "$ref": "#/definitions/DataEndpoint" }
+      }
+    },
+    "DataEndpoint": {
+      "type": "object",
+      "required": ["databaseId", "databaseName", "tableId", "tableName", "fieldId", "fieldName"],
+      "properties": {
+        "databaseId": { "type": "string" },
+        "databaseName": { "type": "string" },
+        "tableId": { "type": "string" },
+        "tableName": { "type": "string" },
+        "fieldId": { "type": "string" },
+        "fieldName": { "type": "string" }
+      }
+    },
+    "DisplayLogicRule": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean", "default": false },
+        "operator": { "type": "string", "enum": ["AND", "OR"] },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["controllingFieldId", "operator", "value"],
+            "properties": {
+              "controllingFieldId": { "type": "string" },
+              "controllingFieldName": { "type": "string" },
+              "operator": {
+                "type": "string",
+                "enum": ["equals", "notEquals", "contains", "doesNotContain", "isEmpty", "isNotEmpty"]
+              },
+              "value": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

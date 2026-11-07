@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cross-Platform Form Builder & Specification Generator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="header">
+    <h1>Form Migration Portal</h1>
+    <div class="actions">
+      <button onclick="exportJSON()" class="btn-secondary">Export JSON</button>
+      <button onclick="importJSON()" class="btn-secondary">Import JSON</button>
+      <button onclick="window.print()" class="btn-success">Print / Save to MHTML</button>
+    </div>
+  </div>
+
+  <!-- Shared Datalist for Alphabetized System Options (Supports Freeform Input) -->
+  <datalist id="systemOptions">
+    <option value="Airtable">
+    <option value="Asana">
+    <option value="Clickup">
+    <option value="Coda">
+    <option value="Cognito">
+    <option value="Jira">
+    <option value="JotForm">
+    <option value="Monday.com">
+    <option value="SmartSuite">
+    <option value="Smartsheet">
+    <option value="SurveyMonkey">
+    <option value="Typeform">
+    <option value="Workfront">
+    <option value="Workfront Planning">
+  </datalist>
+
+  <div class="container">
+    <!-- EDITOR PANE -->
+    <div class="pane pane-editor">
+      <h2>Form Specification Entry</h2>
+      
+      <div class="card">
+        <div class="form-group">
+          <label for="formTitle">Form Title</label>
+          <input type="text" id="formTitle" value="Creative Request Intake Form" oninput="updateData()">
+        </div>
+        
+        <div class="row form-group">
+          <div>
+            <label for="sourceSystem">Source System</label>
+            <input type="text" id="sourceSystem" list="systemOptions" value="Airtable" placeholder="Type or select system..." oninput="updateData()">
+          </div>
+          <div>
+            <label for="targetSystem">Target System</label>
+            <input type="text" id="targetSystem" list="systemOptions" value="Workfront Planning" placeholder="Type or select system..." oninput="updateData()">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="formDesc">Form Description (HTML/Rich Text supported)</label>
+          <textarea id="formDesc" rows="2" oninput="updateData()">Intake form for requesting creative assets. Standard SLAs apply per &lt;a href="#"&gt;Service Policy&lt;/a&gt;.</textarea>
+        </div>
+      </div>
+
+      <div id="sectionsContainer"></div>
+
+      <button onclick="addSection()" class="btn-primary-block">+ Add Form Section</button>
+    </div>
+
+    <!-- PREVIEW / SPECIFICATION DOCUMENT PANE -->
+    <div class="pane pane-preview" id="documentRender">
+      <!-- HTML Specification auto-renders here -->
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
